@@ -1,0 +1,26 @@
+1. 프로그램 사용시 상대 경로를 사용하기 위해, 프로그램의 시작과 동시에 경로를 analysis/scr로 이동 시켜주어야 함 
+
+
+
+# Mecab 설치시 유의사항 
+
+1. 현재 mecab의 지원 버전은 3.8이 가장 최신이다. 
+2. 따라서, 설치시 순서는 아래를 꼭 준수 
+	1. anaconda의 python ver을 3.8 최신 버전으로 다운그래이드 
+	2. jpype 및 whl파일 생성 
+
+
+0. 레퍼런스 
+(아나콘다 환경설정)
+https://velog.io/@dudrkdl777/Tip%EC%95%84%EB%82%98%EC%BD%98%EB%8B%A4-%ED%8C%8C%EC%9D%B4%EC%8D%AC-%EB%B2%84%EC%A0%84-%EB%B3%80%EA%B2%BD%ED%95%98%EA%B8%B0
+https://separang.tistory.com/94
+https://velog.io/@jekim5418/Anaconda-Anaconda-%EA%B0%80%EC%83%81%ED%99%98%EA%B2%BD-%EC%9D%B4%EB%A6%84-%EB%B3%80%EA%B2%BD
+
+(mecab 설치)
+https://wonhwa.tistory.com/49
+
+(윈도우 powershell 속성 변경)
+https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=bluesketch21&logNo=221383264763
+
+(compile wsl 은 아래 링크의 파일에서 설치 후, mecab/tools 파일에 개별 업로드)
+https://github.com/Pusnow/mecab-ko-dic-msvc/releases/tag/mecab-ko-dic-2.1.1-20180720-msvc-2

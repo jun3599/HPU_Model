@@ -19,10 +19,12 @@ class compile_user_dict():
 
     def manager(self):
 
+        pre_fix = ['대우,,,,NNP,*,F,대우,*,*,*,*,*\n', '구글,,,,NNP,*,T,구글,*,*,*,*,*\n']
         # HPU사전을 기반으로 단어들을 추출합니다. 
+
         custom_tokens = self.make_custom_tokens_list()
         # 단어를 입력 형식에 맞게 입력합니다. 
-        dict_input = []
+        dict_input = pre_fix
         for word in custom_tokens:
             jongsung_TF = self.get_jongsung_TF(word)
             new = f'{word},,,,NNP,*,{jongsung_TF},{word},*,*,*,*,*\n'
@@ -36,7 +38,7 @@ class compile_user_dict():
                 f.write(line)
 
         # 변경된 사항을 컴파일합니다. 
-        p = subprocess.Popen('powershell.exe -ExecutionPolicy RemoteSigned -file "./tools/add-userdic-win.ps1"', stdout=sys.stdout)
+        p = subprocess.Popen('powershell.exe -ExecutionPolicy Unrestricted -file "./tools/add-userdic-win.ps1"', stdout=sys.stdout)
         p.communicate()
         p.wait()
 
@@ -65,7 +67,7 @@ class compile_user_dict():
             for line in result:
                 f.write(line)
         # 변경된 사항을 컴파일합니다. 
-        p = subprocess.Popen('powershell.exe -ExecutionPolicy RemoteSigned -file "compile-win.ps1"', stdout=sys.stdout)
+        p = subprocess.Popen('powershell.exe -ExecutionPolicy Unrestricted -file "./tools/compile-win.ps1"', stdout=sys.stdout)
         p.communicate()
         
         return None 
