@@ -1,24 +1,9 @@
-from edit_user_dict import * 
-from konlpy.tag import Mecab
+import os 
+import re 
 
-test_sentence = '부동산 가격의 안정화를 위해 금융 통화 위원회가 규제 손보기에 나섰다.'
-mecab_path = 'C:/mecab'
-mecab_dict_path = 'C:/mecab/mecab-ko-dic'
-HPU_dict_path= 'D:/users/Desktop/Junhwi/국토연구원/HPU_Model/HPU_dict.xlsx'
+files = os.listdir(r'D:\users\Desktop\Junhwi\국토연구원\HPU_Model\data\raw\202201')
+files = [x.split('_')[0].strip() for x in files]
 
-tokenizer = Mecab(mecab_dict_path)
+target_press = ['서울신문','서울경제','한겨레','세계일보','머니투데이','문화일보','매일경제','국민일보','KBS','동아일보','경향신문','MBC','한국경제','SBS','YTN']
 
-result = tokenizer.morphs(test_sentence)
-print(result)
-del tokenizer 
-del Mecab 
-
-compile_user_dict = compile_user_dict(HPU_dict_path= HPU_dict_path, mecab_path=mecab_path)
-compile_user_dict.manager()
-
-from konlpy.tag import Mecab
-tokenizer = Mecab(mecab_dict_path)
-
-result = tokenizer.morphs(test_sentence)
-print(result)
-
+print(sorted(list(set(target_press) - set(files)), reverse=False))
