@@ -65,7 +65,7 @@ class compile_user_dict():
             for line in result:
                 f.write(line)
         # 변경된 사항을 컴파일합니다. 
-        p = subprocess.Popen('powershell.exe -ExecutionPolicy RemoteSigned -file "./tools/compile-win.ps1"', stdout=sys.stdout)
+        p = subprocess.Popen('powershell.exe -ExecutionPolicy RemoteSigned -file "compile-win.ps1"', stdout=sys.stdout)
         p.communicate()
         
         return None 
