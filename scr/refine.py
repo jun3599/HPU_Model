@@ -34,9 +34,15 @@ class refine_data():
 
         return None 
 
-    def confirm_ready_compiled(self):
-
-        return None 
+    def confirm_ready_compiled(self,file_name):
+        '''
+        지정된 파일 경로에, 이미 컴파일 되어있는 파일이 존재할 경우 True를,
+        존재하지 않을 경우 False를 반환합니다. 
+        '''
+        compiled_path = f'{self.data_path}/compiled'
+        if file_name in os.listdir(compiled_path):
+            return True 
+        return False
     
     def confirm_monthly_data(self):
         '''
@@ -47,6 +53,8 @@ class refine_data():
 
     
     def compile(self):
+
+        
 
         return None 
 

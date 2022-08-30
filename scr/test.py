@@ -21,3 +21,4 @@ tokenizer = Mecab(mecab_dict_path)
 
 result = tokenizer.morphs(test_sentence)
 print(result)
+
