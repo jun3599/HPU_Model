@@ -5,7 +5,9 @@ from konlpy.tag import Mecab
 import pandas as pd 
 import sys
 from datetime import datetime 
-import os 
+import os
+
+from sklearn import model_selection 
 
 
 # 1. 컴파일 대상 폴더를 지정하도록 유도한다. 
@@ -27,7 +29,50 @@ class refine_data():
         self.data_path = data_path 
         self.tokenizer = Mecab(self.mecab_path)
         
-    # def mode_selector(self):
+    def mode_selector(self):
+        mode = {'1': '1개 파일만 컴파일 진행', '2': '컴파일된 파일이 없는 모든 파일을 컴파일', '3': '여러개의 파일 선택 컴파일', '0': '모든 파일 컴파일'}
+        selected = input("컴파일 옵션을 선택해주세요! \n1: 1개 파일만 컴파일 진행\n2: 컴파일된 파일이 없는 모든 파일을 컴파일\n3: 여러개의 파일 선택 컴파일\n0: 모든 파일 컴파일\n (원하시는 번호를 입력후 엔터를 눌러주세요!): ")
+
+        # 입력값 확인 
+        if selected not in ['0','1','2','3']:
+            sys.exit("잘못된 컴파일 옵션 선택입니다. 확인후 프로그램을 다시 시작해주세요!")
+
+        # 입력 재확인 
+        confirm = input(f"선택하신 컴파일 옵션이 \n\"{mode[selected]}\"가 맞습니까? (y/n): ")
+        if confirm == 'n':
+            self.mode_selector()
+        else: 
+            return selected 
+    
+    def allocator(self):
+        mode = self.mode_selector()
+        if mode == '1':
+            self.compile_option_1()
+        elif mode == '2':
+            self.compile_option_2()
+        elif mode == '3':
+            self.compile_option_3()
+        elif mode == '0':
+            self.compile_option_0()
+
+
+    def compile_option_1(self):
+        '''
+        1개 파일을 대상으로 컴파일을 진행합니다. 
+        입력의 형식은 yyyymm의 파일명입니다. 
+        '''
+        print("1개 파일 컴파일 옵션을 선택하셨습니다. ")
+        target_file_name = input('컴파일 대상 폴더의 이름을 yyyymm형식으로 정확히 입력후 Enter를 눌러주세요: ')
+        confirm = input(f'대상 폴더가 {target_file_name}이 맞습니까? (y/n): ')
+        return None
+
+    def compile_option_2(self):
+        return None
+
+    def compile_option_3(self):
+        return None
+    def compile_option_0(self):
+        return None 
 
     def confirm_compile_target(self):
         '''
@@ -38,7 +83,7 @@ class refine_data():
 
         return None 
 
-    def confirm_ready_compiled(self,file_name):
+    def confirm_ready_made(self,file_name):
         '''
         지정된 파일 경로에, 이미 컴파일 되어있는 파일이 존재할 경우 True를,
         존재하지 않을 경우 False를 반환합니다. 
@@ -73,7 +118,15 @@ class refine_data():
         return None 
 
     
-    def compile(self):
+    def compile(self, monthly_data_path, save_result_path):
+
+        data = self.merge_monthly_data(monthly_data_path=monthly_data_path)
+        data = self.find_group_of_word(data)
+        data = self.find_group_of_word(data)
+        data = self.write_word_group_TF(data)
+        data = self.grouping_article(data)
+
+        data.to_csv(save_result_path, index=False, encoding='utf-8-sig')
 
         return None 
 
@@ -107,7 +160,7 @@ class refine_data():
 
 
 
-    def find_group_of_word(self, df, target_dict):
+    def find_group_of_word(self, df):
         '''
         HPU 단어사전을 기반으로 
         각 기사에서 각 단어군에 해당하는 단어들이 도출되면, 해당 내용을 H,P,U_A, U_R 컬럼에 담습니다. 
@@ -158,7 +211,7 @@ class refine_data():
         '''
         write_word_group_TF를 통해 도출된 내역을 기반으로 
         HPU-uncertainity 와 HPU-Risk에 해당 하는 단어군을 파악해 TF로 기록합니다. 
-        
+
         '''
         def confirm_HPU_A_TF(H_TF, P_TF, UA_TF):
             if (H_TF == 'T') & (P_TF == 'T') & (UA_TF == 'T'):
