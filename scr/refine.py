@@ -7,7 +7,7 @@ import sys
 from datetime import datetime 
 import os
 
-from sklearn import model_selection 
+from tqdm import tqdm
 
 
 # 1. 컴파일 대상 폴더를 지정하도록 유도한다. 
@@ -64,24 +64,87 @@ class refine_data():
         print("1개 파일 컴파일 옵션을 선택하셨습니다. ")
         target_file_name = input('컴파일 대상 폴더의 이름을 yyyymm형식으로 정확히 입력후 Enter를 눌러주세요: ')
         confirm = input(f'대상 폴더가 {target_file_name}이 맞습니까? (y/n): ')
+        
+        if confirm == 'n':
+            self.compile_option_1()
+        monthly_data_path = f'{self.data_path}/raw/{target_file_name}'
+        save_result_path = f'{self.data_path}/compiled/{target_file_name}.csv'
+
+        self.compile(monthly_data_path, save_result_path)
+        print(f"{target_file_name}에 대한 컴파일이 완료되었습니다. ")
         return None
 
     def compile_option_2(self):
+        '''
+        데이터 중, 컴파일 되지 않은 파일에 대해 컴파일을 진행합니다. 
+        '''
+        compiled_files = set([str(x).strip() for x in os.listdir('D:/users/Desktop/Junhwi/국토연구원/HPU_Model/data/compiled')]) 
+        raw_files = set([str(x).strip() for x in os.listdir('D:/users/Desktop/Junhwi/국토연구원/HPU_Model/data/raw')]) 
+        
+        diff = sorted(list(set(raw_files) - set(compiled_files)), reverse=False)
+        len_diff = len(diff)
+
+        for x in diff:
+            print(f'Folder: {x}')
+        confirm = input(f"총 {len_diff}개의 컴파일 대상 파일이 발견되었습니다. 일괄 처리를 진행할까요? (y/n): ")
+
+        if confirm == 'n':
+            sys.exit("사용자의 요청에 의해 컴파일이 중단되었습니다.")
+        
+        for target_file_name in tqdm(diff, desc = '다중 컴파일 진행현황'):
+            monthly_data_path = f'{self.data_path}/raw/{target_file_name}'
+            save_result_path = f'{self.data_path}/compiled/{target_file_name}.csv'
+
+            self.compile(monthly_data_path, save_result_path)
+        
+        print(f"컴파일이 완료되었습니다. ")        
         return None
 
     def compile_option_3(self):
+        '''
+        사용자의 다중 입력을 기준으로 컴파일을 진행합니다. 
+        '''
+        input_target = sorted(list(map(str, input('컴파일을 진행하고자 하는 파일의 이름을 yyyymm형식으로 정확히 입력해주세요 (구분자는 ','으로  입력 완료시 Enter를 눌러주십시오): ').split(' '))), reverse=False)
+        
+        confirm = input(f"선택하신 항목이\n{input_target}\n이 맞습니까? (y/n): ")
+        
+        if confirm == 'n':
+            self.compile_option_3
+        
+        raw_files = set([str(x).strip() for x in os.listdir('D:/users/Desktop/Junhwi/국토연구원/HPU_Model/data/raw')]) 
+        input_target = set(input_target)
+
+        diff = sorted(list(set(input_target) - set(raw_files)), reverse=False)
+        if len(diff) > 0:
+            sys.exit(f"입력된 대상 파일 중, {diff} 파일이 존재하지 않습니다. 프로그램을 종료합니다.")
+        
+        input_target = list(input_target)
+        for target_file_name in tqdm(input_target, desc = '다중 컴파일 진행현황'):
+            monthly_data_path = f'{self.data_path}/raw/{target_file_name}'
+            save_result_path = f'{self.data_path}/compiled/{target_file_name}.csv'
+
+            self.compile(monthly_data_path, save_result_path)
+        
+        print(f"컴파일이 완료되었습니다. ")        
+
         return None
+
     def compile_option_0(self):
+        '''
+        일괄 처리를 진행합니다. 
+        '''
+        target = sorted(os.listdir('D:/users/Desktop/Junhwi/국토연구원/HPU_Model/data/raw'), reverse= True)
+        for target_file_name in tqdm(target, desc = '다중 컴파일 진행현황'):
+            monthly_data_path = f'{self.data_path}/raw/{target_file_name}'
+            save_result_path = f'{self.data_path}/compiled/{target_file_name}.csv'
+
+            self.compile(monthly_data_path, save_result_path)
+        
+        print(f"컴파일이 완료되었습니다. ")
+
         return None 
 
-    def confirm_compile_target(self):
-        '''
-        1개 파일 컴파일 모드 
-        다중 선택 모드 
-        일괄처리 모드        
-        '''
 
-        return None 
 
     def confirm_ready_made(self,file_name):
         '''
@@ -93,7 +156,7 @@ class refine_data():
             return True 
         return False
     
-    def confirm_monthly_data(self,target_raw_path, warn = True):
+    def confirm_monthly_data(self,target_raw_path, warn = True, skip =True):
         '''
         1. 데이터의 무결성을 확인 
         2. 제외된 언론사 정보가 있으면, 해당 내용을 보고하고 - 유저에게 방안을 선택하도록 옵션을 부여 
@@ -113,12 +176,19 @@ class refine_data():
 
                 confirm = input("컴파일을 계속하시겠습니까? (y/n): ")
                 if confirm == 'n':
-                    sys.exit("사용자의 컴파일 중단으로 프로그램이 종료됩니다. ")
+                    if skip == True:
+                        return None 
+                    else:
+                        sys.exit("사용자의 컴파일 중단으로 프로그램이 종료됩니다. ")
 
         return None 
 
     
-    def compile(self, monthly_data_path, save_result_path):
+    def compile(self, monthly_data_path, save_result_path, warn = True, skip =True):
+        
+        # 컴파일된 파일의 존재여부 확인 
+
+        # 일자별 데이터 중 누락 언론사 존재 여부 파악 
 
         data = self.merge_monthly_data(monthly_data_path=monthly_data_path)
         data = self.find_group_of_word(data)
