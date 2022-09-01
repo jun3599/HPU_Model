@@ -133,3 +133,7 @@ data/
 
 # mecab 
 mecab/
+
+# xlsx, csv files 
+*.xlsx 
+*.csv
