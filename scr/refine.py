@@ -1,4 +1,7 @@
+# 자연어 처리를 위한 모듈 
 import re 
+from konlpy.tag import Mecab 
+
 import pandas as pd 
 import sys
 from datetime import datetime 
@@ -22,8 +25,8 @@ class refine_data():
         self.HPU_dict_path = HPU_dict_path
         self.mecab_path = mecab_path 
         self.data_path = data_path 
+        self.tokenizer = Mecab(self.mecab_path)
         
-
     # def mode_selector(self):
 
     def confirm_compile_target(self):
@@ -72,13 +75,105 @@ class refine_data():
     
     def compile(self):
 
+        return None 
+
+    def merge_monthly_data(self, monthly_data_path):
+        data = pd.DataFrame()
+        for file in os.listdir(monthly_data_path):
+            
+            temp = pd.read_csv(f'{monthly_data_path/file}', encoding='utf-8-sig' ,error_bad_lines=False)
+            
+            # 언론사 이름 통일 
+            press = file.split('_')[0].strip()
+            temp['press'] = press 
+
+            # 기사 입력정보 정제 
+            temp.drop(columns=['input_date_y'], inplace=True)
+            temp.rename(columns={'input_date_x':'input_date'}, inplace=True)
+            temp['input_date'] = pd.to_datetime(temp['input_date'], errors='ignore')
+
+            # 기사 제목 정제 
+            temp.drop(columns=['title_y'], inplace=True)
+            temp.rename(columns={'title_x':'title'}, inplace=True)
+            temp['title'] = temp['title'].apply(lambda  x: re.sub(r'\n',' ', str(x))).apply(lambda  x: re.sub(r'\t',' ', str(x))).apply(lambda  x: re.sub(r'\s',' ', str(x)))
+
+            # 기사 본문 정제 
+            temp['article'] = temp['article'].apply(lambda  x: re.sub(r'\n',' ', str(x))).apply(lambda  x: re.sub(r'\t',' ', str(x))).apply(lambda  x: re.sub(r'\s',' ', str(x)))
+
+
+            data = data.append(temp, ignore_index= True)
         
+        return data  
 
-        return None 
 
 
-    def tokenize_article(self):
-        return None 
-    
+    def find_group_of_word(self, df, target_dict):
+        '''
+        HPU 단어사전을 기반으로 
+        각 기사에서 각 단어군에 해당하는 단어들이 도출되면, 해당 내용을 H,P,U_A, U_R 컬럼에 담습니다. 
+        '''
+        def compare_article_list(tokenized_article_list, word_list):
+            tokenized_article_list = set(tokenized_article_list)
+            word_list = set(word_list)
 
-    
+            result = tokenized_article_list.intersection(word_list)
+            return list(result) 
+        
+        try:
+            target_dict = pd.read_excel(self.HPU_dict_path)
+        except FileNotFoundError as nf:
+            sys.exit(f'HPU사전이 지정된 경로에 존재하지 않습니다.  \nERROR CODE: {nf}')
+
+        H = target_dict.loc[target_dict['tag'] == 'H', 'word'].to_list()
+        P = target_dict.loc[target_dict['tag'] == 'P', 'word'].to_list()
+        U_A = target_dict.loc[target_dict['tag'] == 'U-A', 'word'].to_list()
+        U_R = target_dict.loc[target_dict['tag'] == 'U-R', 'word'].to_list()
+
+        df['H_word'] = df['tokenized_article'].apply(lambda x: compare_article_list(x, H))
+        df['P_word'] = df['tokenized_article'].apply(lambda x: compare_article_list(x, P))
+        df['U-A_word'] = df['tokenized_article'].apply(lambda x: compare_article_list(x, U_A))
+        df['U-R_word'] = df['tokenized_article'].apply(lambda x: compare_article_list(x, U_R))
+
+        return df 
+
+    def write_word_group_TF(self, df):
+        '''
+        find_group_of_word 함수를 통해 생성된 열들을 기반으로 
+        단어의 출현 여부를 확인해 T/F 값을 기입합니다. 
+        '''
+        def confirm_TF(word_list):
+            if len(word_list) == 0:
+                return 'F' 
+            else:
+                return 'T'
+
+        df['H_TF'] = df['H_word'].apply(lambda x: confirm_TF(x))
+        df['P_TF'] = df['P_word'].apply(lambda x: confirm_TF(x))
+        df['U-A_TF'] = df['U-A_word'].apply(lambda x: confirm_TF(x))
+        df['U-R_TF'] = df['U-R_word'].apply(lambda x: confirm_TF(x))
+
+        return df
+
+    def grouping_article(self, df):
+        '''
+        write_word_group_TF를 통해 도출된 내역을 기반으로 
+        HPU-uncertainity 와 HPU-Risk에 해당 하는 단어군을 파악해 TF로 기록합니다. 
+        
+        '''
+        def confirm_HPU_A_TF(H_TF, P_TF, UA_TF):
+            if (H_TF == 'T') & (P_TF == 'T') & (UA_TF == 'T'):
+              HPU_A_TF = 'T'
+            else:
+                HPU_A_TF = 'F'
+            return HPU_A_TF
+        def confirm_HPU_R_TF(H_TF, P_TF, UR_TF):
+            if (H_TF == 'T') & (P_TF == 'T') & (UR_TF == 'T'):
+                HPU_R_TF = 'T'
+            else:
+                HPU_R_TF = 'F'
+            return HPU_R_TF
+
+        df['HPU_A_TF'] = df.apply(lambda x: confirm_HPU_A_TF(x['H_TF'],x['P_TF'],x['U-A_TF']), axis =1)
+        df['HPU_R_TF'] = df.apply(lambda x: confirm_HPU_R_TF(x['H_TF'],x['P_TF'],x['U-R_TF']), axis =1)
+        
+        return df 
