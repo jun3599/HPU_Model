@@ -23,11 +23,11 @@ from tqdm import tqdm
 
 
 class refine_data():
-    def __init__(self, HPU_dict_path, mecab_path, data_path):
+    def __init__(self, HPU_dict_path, mecab_ko_dict_path, data_path):
         self.HPU_dict_path = HPU_dict_path
-        self.mecab_path = mecab_path 
+        self.mecab_path = mecab_ko_dict_path 
         self.data_path = data_path 
-        self.tokenizer = Mecab(mecab_path)
+        self.tokenizer = Mecab(self.mecab_path)
         self.manager()
         
     def manager(self):
