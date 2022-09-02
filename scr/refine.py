@@ -28,23 +28,9 @@ class refine_data():
         self.mecab_path = mecab_path 
         self.data_path = data_path 
         self.tokenizer = Mecab(self.mecab_path)
+        self.manager()
         
-    def mode_selector(self):
-        mode = {'1': '1개 파일만 컴파일 진행', '2': '컴파일된 파일이 없는 모든 파일을 컴파일', '3': '여러개의 파일 선택 컴파일', '0': '모든 파일 컴파일'}
-        selected = input("컴파일 옵션을 선택해주세요! \n1: 1개 파일만 컴파일 진행\n2: 컴파일된 파일이 없는 모든 파일을 컴파일\n3: 여러개의 파일 선택 컴파일\n0: 모든 파일 컴파일\n (원하시는 번호를 입력후 엔터를 눌러주세요!): ")
-
-        # 입력값 확인 
-        if selected not in ['0','1','2','3']:
-            sys.exit("잘못된 컴파일 옵션 선택입니다. 확인후 프로그램을 다시 시작해주세요!")
-
-        # 입력 재확인 
-        confirm = input(f"선택하신 컴파일 옵션이 \n\"{mode[selected]}\"가 맞습니까? (y/n): ")
-        if confirm == 'n':
-            self.mode_selector()
-        else: 
-            return selected 
-    
-    def allocator(self):
+    def manager(self):
         mode = self.mode_selector()
         if mode == '1':
             self.compile_option_1()
@@ -54,8 +40,24 @@ class refine_data():
             self.compile_option_3()
         elif mode == '0':
             self.compile_option_0()
+        else: 
+            sys.exit("사용자의 요청으로 프로그램을 종료합니다.")
 
+    def mode_selector(self):
+        mode = {'1': '1개 파일만 컴파일 진행', '2': '컴파일된 파일이 없는 모든 파일을 컴파일', '3': '여러개의 파일 선택 컴파일', '0': '모든 파일 컴파일', '*':'종료'}
+        selected = input("컴파일 옵션을 선택해주세요! \n1: 1개 파일만 컴파일 진행\n2: 컴파일된 파일이 없는 모든 파일을 컴파일\n3: 여러개의 파일 선택 컴파일\n0: 모든 파일 컴파일\n*: 프로그램 종료\n (원하시는 번호를 입력후 엔터를 눌러주세요!): ")
 
+        # 입력값 확인 
+        if selected not in ['0','1','2','3','*']:
+            sys.exit("잘못된 컴파일 옵션 선택입니다. 확인후 프로그램을 다시 시작해주세요!")
+
+        # 입력 재확인 
+        confirm = input(f"선택하신 컴파일 옵션이 \n\"{mode[selected]}\"가 맞습니까? (y/n): ")
+        if confirm == 'n':
+            self.mode_selector()
+        else: 
+            return selected 
+    
     def compile_option_1(self):
         '''
         1개 파일을 대상으로 컴파일을 진행합니다. 
@@ -146,7 +148,7 @@ class refine_data():
 
 
 
-    def confirm_ready_made(self,file_name, warn = True, skip = True):
+    def confirm_ready_made(self, file_name, warn = True, skip = True):
         '''
         지정된 파일 경로에, 이미 컴파일 되어있는 파일이 존재할 경우 True를,
         존재하지 않을 경우 False를 반환합니다. 
@@ -197,9 +199,13 @@ class refine_data():
     def compile(self, monthly_data_path, save_result_path, warn = True, skip =True):
         
         # 컴파일된 파일의 존재여부 확인 
+        file_name = save_result_path.split('/')[-1]
+        self.confirm_ready_made(file_name, warn, skip)
 
         # 일자별 데이터 중 누락 언론사 존재 여부 파악 
+        self.confirm_monthly_data(monthly_data_path, warn, skip)
 
+        # 데이터 처리 시작 
         data = self.merge_monthly_data(monthly_data_path=monthly_data_path)
         data = self.find_group_of_word(data)
         data = self.find_group_of_word(data)
