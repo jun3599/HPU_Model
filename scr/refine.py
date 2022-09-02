@@ -203,8 +203,10 @@ class refine_data():
     def merge_monthly_data(self, monthly_data_path):
         data = pd.DataFrame()
         for file in os.listdir(monthly_data_path):
-            
-            temp = pd.read_csv(f'{monthly_data_path/file}', encoding='utf-8-sig' ,error_bad_lines=False)
+            try: 
+                temp = pd.read_csv(f'{monthly_data_path/file}')
+            except:
+                temp = pd.read_table(f'{monthly_data_path/file}, engine="python", error_bad_lines=False, sep=',', encoding='utf-8-sig', header=0,warn_bad_lines=False)
             
             # 언론사 이름 통일 
             press = file.split('_')[0].strip()
