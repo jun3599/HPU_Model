@@ -203,11 +203,14 @@ class refine_data():
     def merge_monthly_data(self, monthly_data_path):
         data = pd.DataFrame()
         for file in os.listdir(monthly_data_path):
+            # 개별 데이터 파일 로드 
             try: 
                 temp = pd.read_csv(f'{monthly_data_path/file}')
             except:
-                temp = pd.read_table(f'{monthly_data_path/file}, engine="python", error_bad_lines=False, sep=',', encoding='utf-8-sig', header=0,warn_bad_lines=False)
+                # bad sector 가 존재하는 데이터를 불러오기 위한 예외처리
+                temp = pd.read_table(f'{monthly_data_path/file}', engine="python", error_bad_lines=False, sep=',', encoding='utf-8-sig', header=0,warn_bad_lines=False)
             
+
             # 언론사 이름 통일 
             press = file.split('_')[0].strip()
             temp['press'] = press 
@@ -222,6 +225,8 @@ class refine_data():
             temp.rename(columns={'title_x':'title'}, inplace=True)
             temp['title'] = temp['title'].apply(lambda  x: re.sub(r'\n',' ', str(x))).apply(lambda  x: re.sub(r'\t',' ', str(x))).apply(lambda  x: re.sub(r'\s',' ', str(x)))
 
+            # 기사 본문이 존재하지 않는 데이터 제거 
+            temp.dropna(subset=['article'], inplace=True)
             # 기사 본문 정제 
             temp['article'] = temp['article'].apply(lambda  x: re.sub(r'\n',' ', str(x))).apply(lambda  x: re.sub(r'\t',' ', str(x))).apply(lambda  x: re.sub(r'\s',' ', str(x)))
 
