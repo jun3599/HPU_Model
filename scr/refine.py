@@ -27,7 +27,7 @@ class refine_data():
         self.HPU_dict_path = HPU_dict_path
         self.mecab_path = mecab_path 
         self.data_path = data_path 
-        self.tokenizer = Mecab()
+        self.tokenizer = Mecab(mecab_path)
         self.manager()
         
     def manager(self):
@@ -207,6 +207,7 @@ class refine_data():
 
         # 데이터 처리 시작 
         data = self.merge_monthly_data(monthly_data_path=monthly_data_path)
+        data = self.tokenize_article(data)
         data = self.find_group_of_word(data)
         data = self.find_group_of_word(data)
         data = self.write_word_group_TF(data)
@@ -221,10 +222,10 @@ class refine_data():
         for file in os.listdir(monthly_data_path):
             # 개별 데이터 파일 로드 
             try: 
-                temp = pd.read_csv(f'{monthly_data_path/file}')
+                temp = pd.read_csv(f'{monthly_data_path}/{file}')
             except:
                 # bad sector 가 존재하는 데이터를 불러오기 위한 예외처리
-                temp = pd.read_table(f'{monthly_data_path/file}', engine="python", error_bad_lines=False, sep=',', encoding='utf-8-sig', header=0,warn_bad_lines=False)
+                temp = pd.read_table(f'{monthly_data_path}/{file}', engine="python", error_bad_lines=False, sep=',', encoding='utf-8-sig', header=0,warn_bad_lines=False)
             
 
             # 언론사 이름 통일 
@@ -251,7 +252,11 @@ class refine_data():
         
         return data  
 
+    def tokenize_article(self, df):
+        tokenizer = self.tokenizer
+        df['tokenized_article'] = df['article'].apply(lambda x: tokenizer.nouns(str(x)))
 
+        return df
 
     def find_group_of_word(self, df):
         '''
