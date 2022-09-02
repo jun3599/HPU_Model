@@ -27,7 +27,7 @@ class refine_data():
         self.HPU_dict_path = HPU_dict_path
         self.mecab_path = mecab_path 
         self.data_path = data_path 
-        self.tokenizer = Mecab(self.mecab_path)
+        self.tokenizer = Mecab()
         self.manager()
         
     def manager(self):
