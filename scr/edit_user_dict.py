@@ -5,6 +5,8 @@ import subprocess
 
 import pandas as pd 
 from jamo import h2j, j2hcj
+import warnings
+warnings.filterwarnings('ignore')
 
 
 class compile_user_dict():
