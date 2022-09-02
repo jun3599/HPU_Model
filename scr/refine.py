@@ -146,16 +146,23 @@ class refine_data():
 
 
 
-    def confirm_ready_made(self,file_name):
+    def confirm_ready_made(self,file_name, warn = True, skip = True):
         '''
         지정된 파일 경로에, 이미 컴파일 되어있는 파일이 존재할 경우 True를,
         존재하지 않을 경우 False를 반환합니다. 
         '''
-        compiled_path = f'{self.data_path}/compiled'
-        if file_name in os.listdir(compiled_path):
-            return True 
-        return False
-    
+        if warn == True:
+            compiled_path = f'{self.data_path}/compiled'
+            if file_name in os.listdir(compiled_path):
+                if skip == True:
+                    return None 
+                else: 
+                    confirm = input(f"컴파일된 파일 목록에 {file_name}이(가) 이미 존재합니다. 컴파일을 계속하시겠습니까? (y/n): ")
+                    if confirm == 'n':
+                        sys.exit("사용자의 요청으로 인해 프로그램이 종료됩니다.")
+                    return None 
+
+
     def confirm_monthly_data(self,target_raw_path, warn = True, skip =True):
         '''
         1. 데이터의 무결성을 확인 
@@ -174,13 +181,16 @@ class refine_data():
                     print(press)
                 print("="*10)
 
-                confirm = input("컴파일을 계속하시겠습니까? (y/n): ")
-                if confirm == 'n':
-                    if skip == True:
+                if skip == True:
+                    return None 
+                else:
+                    confirm = input("컴파일을 계속하시겠습니까? (y/n): ")
+                    if confirm == 'y':
                         return None 
-                    else:
+                    elif confirm == 'n':
                         sys.exit("사용자의 컴파일 중단으로 프로그램이 종료됩니다. ")
-
+                    else:
+                        sys.exit("잘못된 명령입니다. 프로그램을 종료합니다. ")
         return None 
 
     
