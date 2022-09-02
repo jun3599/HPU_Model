@@ -8,6 +8,8 @@ from datetime import datetime
 import os
 
 from tqdm import tqdm
+import warnings
+warnings.filterwarnings('ignore')
 
 
 # 1. 컴파일 대상 폴더를 지정하도록 유도한다. 
