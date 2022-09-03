@@ -31,6 +31,7 @@ class calculate_index():
     def manager(self):
         sd, ed = self.confirm_target()
         periods = self.get_series_of_month(sd,ed)
+        self.confirm_exclusion_target()
 
         save_path = f'{self.data_path}/result/분석결과_FROM{sd}TO{ed}_생성일{self.today}.xlsx'
         
@@ -84,7 +85,58 @@ class calculate_index():
         else:
             return time_series
     
-  
+    def confirm_exclusion_target(self):
+        press_dict = {
+        '0':'국민일보', 
+        '1':'경향신문', 
+        '2':'동아일보', 
+        '3':'머니투데이', 
+        '4':'문화일보 ', 
+        '5':'매일경제', 
+        '6':'서울경제', 
+        '7':'서울신문', 
+        '8':'세계일보', 
+        '9':'한겨레', 
+        '10':'한국경제', 
+        '11':'SBS', 
+        '12':'YTN',
+        '13':'KBS',
+        '14':'MBC'
+        }
+        confirm = input("분석대상에서 제외하고자 하는 언론사가 있습니까? (y/n): ")
+        if confirm == 'n':
+            print("제외 언론사를 지정하지 않고 분석을 진행합니다. ")
+            self.exclusion_target = [] 
+            return None 
+        
+        elif confirm == 'y':
+            for id, press in press_dict.items():
+                print(f'번호: {id} || 언론사: {press}')
+
+            press_ids = list(map(str,input("분석에서 제외하고자 하는 대상 언론사의 id를 콤마(',')로 구분지어 입력후, 엔터를 눌러주세요: ").split(',')))
+            diff = [x for x in press_ids if x not in press_dict.keys()]
+            if len(diff) > 0:
+                print(f"입력하신 id에 문제가 있습니다. 문제가 되는 id값은 :: {diff}")
+                self.confirm_exclusion_target()
+            else: 
+                ex_presses = [press_dict[x] for x in press_ids]
+                print("제외를 원하시는 언론사의 목록이 ::")
+                print('='*10)
+                for x in ex_presses:
+                    print(x)
+                print("="*10)
+                confirm = input("이 맞습니까? (y/n): ")
+                if confirm == 'n':
+                    self.confirm_exclusion_target()
+
+                self.exclusion_target = ex_presses
+                return None 
+        else: 
+            print("잘못된 입력입니다. ")
+            self.confirm_exclusion_target()
+
+
+
     def counter(self, target_file):
         try:
             data = pd.read_csv(target_file)
@@ -93,7 +145,7 @@ class calculate_index():
             data = pd.read_table(target_file, engine="python", error_bad_lines=False, sep=',', encoding='utf-8-sig', header=0,warn_bad_lines=False)
         
         date = datetime.strptime(data['input_date'].value_counts().keys().to_list()[0], '%Y-%m-%d').strftime('%Y%m')
-        presses = list(data['press'].unique())
+        presses = sorted(list(set(list(data['press'].unique())) - set(self.exclusion_target)), reverse=False) 
         
         datum = {}
         datum['period'] = date
@@ -137,9 +189,6 @@ class calculate_index():
         df['Zt_R/T'] = ''
         df['Zt_A/T'][0] = df['Zt_A'].mean()
         df['Zt_R/T'][0] = df['Zt_R'].mean()
-
-        print(df['Zt_A/T'])
-        print(df['Zt_A/T'].dtype)
 
         df['HPU_A'] = df['Zt_A']/df['Zt_A/T'][0] *100 
         df['HPU_R'] = df['Zt_R']/df['Zt_R/T'][0] *100

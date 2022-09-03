@@ -1,2 +1,3 @@
 from calculate_index import * 
-calculate_index('D:/Users/wnsgnl/Desktop/paper_master2/HPU_Model/data')
+calculate_index('D:/users/Desktop/Junhwi/국토연구원/HPU_Model/data')
+
