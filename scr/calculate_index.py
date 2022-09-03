@@ -61,6 +61,10 @@ class calculate_index():
         if f'{ed}.csv' not in self.compiled_list:
             print(f"{ed}.csv 파일이 ./data/compiled 파일 내에 존재하지 않습니다.")
             self.confirm_target()
+
+        if sd > ed:
+            print("시작년월이 종료년월보다 값이 큽니다.")
+            self.confirm_target()
         
         return sd, ed 
     
