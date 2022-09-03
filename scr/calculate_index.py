@@ -148,7 +148,9 @@ class calculate_index():
             # bad sector 가 존재하는 데이터를 불러오기 위한 예외처리
             data = pd.read_table(target_file, engine="python", error_bad_lines=False, sep=',', encoding='utf-8-sig', header=0,warn_bad_lines=False)
         
-        date = datetime.strptime(data['input_date'].value_counts().keys().to_list()[0], '%Y-%m-%d').strftime('%Y%m')
+        # date = datetime.strptime(data['input_date'].value_counts().keys().to_list()[0], '%Y-%m-%d').strftime('%Y%m')
+        date = target_file.split('/')[-1].split('.')[0]
+        
         presses = sorted(list(set(list(data['press'].unique())) - set(self.exclusion_target)), reverse=False) 
         
         datum = {}
