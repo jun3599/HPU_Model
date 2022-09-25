@@ -18,7 +18,8 @@ class compile_user_dict():
             self.HPU_dict = pd.read_excel(self.HPU_dict_path)
         except FileNotFoundError as e1:
             sys.exit("HPU_dict.xlsx파일이 지정된 경로에 존재하지 않습니다. 확인후 문의 부탁드립니다. ")
-
+        self.manager()
+        
     def manager(self):
 
         pre_fix = ['대우,,,,NNP,*,F,대우,*,*,*,*,*\n', '구글,,,,NNP,*,T,구글,*,*,*,*,*\n']
