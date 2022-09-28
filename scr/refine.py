@@ -219,7 +219,7 @@ class refine_data():
 
         return None 
 
-    def merge_monthly_data(self, monthly_data_path):
+    def merge_monthly_data(self, monthly_data_path, drop_entertain_sport = True):
         data = pd.DataFrame()
         for file in os.listdir(monthly_data_path):
             # 개별 데이터 파일 로드 
@@ -246,6 +246,11 @@ class refine_data():
 
             # 기사 본문이 존재하지 않는 데이터 제거 
             temp.dropna(subset=['article'], inplace=True)
+            if drop_entertain_sport:
+                # 기사의 형식이 연애기사거나, 스포츠 기사인 경우를 제외합니다.
+                temp.drop(temp.loc[temp['naver_url'].str.contains('sports.news.nave')].index, inplace=True)
+                temp.drop(temp.loc[(temp['article'].str.contains('수집불가 페이지')|(temp['article'].str.contains('entertain.naver.com')))].index, inplace=True)
+
             # 기사 본문 정제 
             temp['article'] = temp['article'].apply(lambda  x: re.sub(r'\n',' ', str(x))).apply(lambda  x: re.sub(r'\t',' ', str(x))).apply(lambda  x: re.sub(r'\s',' ', str(x)))
 
