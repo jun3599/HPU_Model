@@ -29,6 +29,12 @@ class refine_data():
         self.HPU_dict_path = HPU_dict_path
         self.mecab_path = mecab_ko_dict_path 
         self.data_path = data_path 
+        if not os.path.exists(f'{self.data_path}/compiled'):
+            os.mkdir(f'{self.data_path}/compiled')
+        if not os.path.exists(f'{self.data_path}/result'):
+            os.mkdir(f'{self.data_path}/result')
+        
+
         self.tokenizer = Mecab(self.mecab_path)
         self.manager()
         
