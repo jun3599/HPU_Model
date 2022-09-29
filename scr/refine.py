@@ -29,6 +29,12 @@ class refine_data():
         self.HPU_dict_path = HPU_dict_path
         self.mecab_path = mecab_ko_dict_path 
         self.data_path = data_path 
+        if not os.path.exists(f'{self.data_path}/compiled'):
+            os.mkdir(f'{self.data_path}/compiled')
+        if not os.path.exists(f'{self.data_path}/result'):
+            os.mkdir(f'{self.data_path}/result')
+        
+
         self.tokenizer = Mecab(self.mecab_path)
         self.manager()
         
@@ -219,7 +225,7 @@ class refine_data():
 
         return None 
 
-    def merge_monthly_data(self, monthly_data_path):
+    def merge_monthly_data(self, monthly_data_path, drop_entertain_sport = True):
         data = pd.DataFrame()
         for file in os.listdir(monthly_data_path):
             # 개별 데이터 파일 로드 
@@ -246,6 +252,11 @@ class refine_data():
 
             # 기사 본문이 존재하지 않는 데이터 제거 
             temp.dropna(subset=['article'], inplace=True)
+            if drop_entertain_sport:
+                # 기사의 형식이 연애기사거나, 스포츠 기사인 경우를 제외합니다.
+                temp.drop(temp.loc[temp['naver_url'].str.contains('sports.news.nave')].index, inplace=True)
+                temp.drop(temp.loc[(temp['article'].str.contains('수집불가 페이지')|(temp['article'].str.contains('entertain.naver.com')))].index, inplace=True)
+
             # 기사 본문 정제 
             temp['article'] = temp['article'].apply(lambda  x: re.sub(r'\n',' ', str(x))).apply(lambda  x: re.sub(r'\t',' ', str(x))).apply(lambda  x: re.sub(r'\s',' ', str(x)))
 
@@ -289,21 +300,24 @@ class refine_data():
 
         return df 
 
-    def write_word_group_TF(self, df):
+    def write_word_group_TF(self, df, min_freq = 1):
         '''
         find_group_of_word 함수를 통해 생성된 열들을 기반으로 
         단어의 출현 여부를 확인해 T/F 값을 기입합니다. 
         '''
-        def confirm_TF(word_list):
+        def confirm_TF(word_list, min_freq):
             if len(word_list) == 0:
                 return 'F' 
+            elif len(word_list) >= min_freq:
+                return 'T'
+
             else:
                 return 'T'
 
-        df['H_TF'] = df['H_word'].apply(lambda x: confirm_TF(x))
-        df['P_TF'] = df['P_word'].apply(lambda x: confirm_TF(x))
-        df['U-A_TF'] = df['U-A_word'].apply(lambda x: confirm_TF(x))
-        df['U-R_TF'] = df['U-R_word'].apply(lambda x: confirm_TF(x))
+        df['H_TF'] = df['H_word'].apply(lambda x: confirm_TF(x, 2))
+        df['P_TF'] = df['P_word'].apply(lambda x: confirm_TF(x,1))
+        df['U-A_TF'] = df['U-A_word'].apply(lambda x: confirm_TF(x,1))
+        df['U-R_TF'] = df['U-R_word'].apply(lambda x: confirm_TF(x,1))
 
         return df
 

@@ -1,15 +1,8 @@
-import os 
-import pandas as pd 
+from HPU_model import * 
 
+if __name__ == "__main__":
+    data_path = ''
+    HPU_dict_path = ''
+    mecab_path = ''
 
-path = 'D:/Users/wnsgnl/Desktop/paper_master2/analysis/data/raw'
-
-temp = [] 
-for file in os.listdir(path): 
-    sub_file = f'{path}/{file}'
-    t =  [file, len(os.listdir(sub_file))]
-    temp.append(t)
-
-a = pd.DataFrame(temp, columns=['file','size']) 
-
-a.to_excel(r'D:\Users\wnsgnl\Desktop\paper_master2\analysis\res.xlsx')
+    HPU_model(data_path=data_path, HPU_dict_path=HPU_dict_path, mecab_path=mecab_path)
