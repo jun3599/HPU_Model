@@ -5,7 +5,10 @@ from konlpy.tag import Mecab
 import pandas as pd 
 import sys
 from datetime import datetime 
+from dateutil import rrule
+
 import os
+import ast 
 
 from tqdm import tqdm
 import warnings
@@ -46,17 +49,19 @@ class refine_data():
             self.compile_option_2()
         elif mode == '3':
             self.compile_option_3()
+        elif mode == '4':
+            self.compile_option_4()
         elif mode == '0':
             self.compile_option_0()
         else: 
             sys.exit("사용자의 요청으로 프로그램을 종료합니다.")
 
     def mode_selector(self):
-        mode = {'1': '1개 파일만 컴파일 진행', '2': '컴파일된 파일이 없는 모든 파일을 컴파일', '3': '여러개의 파일 선택 컴파일', '0': '모든 파일 컴파일', '*':'종료'}
-        selected = input("컴파일 옵션을 선택해주세요! \n1: 1개 파일만 컴파일 진행\n2: 컴파일된 파일이 없는 모든 파일을 컴파일\n3: 여러개의 파일 선택 컴파일\n0: 모든 파일 컴파일\n*: 프로그램 종료\n (원하시는 번호를 입력후 엔터를 눌러주세요!): ")
+        mode = {'1': '1개 파일만 컴파일 진행', '2': '컴파일된 파일이 없는 모든 파일을 컴파일', '3': '여러개의 파일 선택 컴파일','4':'선택기간 컴파일', '0': '모든 파일 컴파일', '*':'종료'}
+        selected = input("컴파일 옵션을 선택해주세요! \n1: 1개 파일만 컴파일 진행\n2: 컴파일된 파일이 없는 모든 파일을 컴파일\n3: 여러개의 파일 선택 컴파일\n4: 선택기간 컴파일\n0: 모든 파일 컴파일\n*: 프로그램 종료\n (원하시는 번호를 입력후 엔터를 눌러주세요!): ")
 
         # 입력값 확인 
-        if selected not in ['0','1','2','3','*']:
+        if selected not in ['0','1','2','3','4','*']:
             sys.exit("잘못된 컴파일 옵션 선택입니다. 확인후 프로그램을 다시 시작해주세요!")
 
         # 입력 재확인 
@@ -88,7 +93,7 @@ class refine_data():
         '''
         데이터 중, 컴파일 되지 않은 파일에 대해 컴파일을 진행합니다. 
         '''
-        compiled_files = set([str(x).strip() for x in os.listdir('D:/users/Desktop/Junhwi/국토연구원/HPU_Model/data/compiled')]) 
+        compiled_files = set([str(x).strip().split('.')[0] for x in os.listdir('D:/users/Desktop/Junhwi/국토연구원/HPU_Model/data/compiled')]) 
         raw_files = set([str(x).strip() for x in os.listdir('D:/users/Desktop/Junhwi/국토연구원/HPU_Model/data/raw')]) 
         
         diff = sorted(list(set(raw_files) - set(compiled_files)), reverse=False)
@@ -123,6 +128,42 @@ class refine_data():
         
         raw_files = set([str(x).strip() for x in os.listdir('D:/users/Desktop/Junhwi/국토연구원/HPU_Model/data/raw')]) 
         input_target = set(input_target)
+
+        diff = sorted(list(set(input_target) - set(raw_files)), reverse=False)
+        if len(diff) > 0:
+            sys.exit(f"입력된 대상 파일 중, {diff} 파일이 존재하지 않습니다. 프로그램을 종료합니다.")
+        
+        input_target = list(input_target)
+        for target_file_name in tqdm(input_target, desc = '다중 컴파일 진행현황'):
+            monthly_data_path = f'{self.data_path}/raw/{target_file_name}'
+            save_result_path = f'{self.data_path}/compiled/{target_file_name}.csv'
+
+            self.compile(monthly_data_path, save_result_path)
+        
+        print(f"컴파일이 완료되었습니다. ")        
+
+        return None
+
+    def compile_option_4(self):
+        '''
+        사용자가 지정한 기간입력을 기준으로 컴파일을 진행합니다. 
+        '''
+        start_ym = input("컴파일을 원하시는 기간의 시작 년월을 yyyymm 형식으로 입력해주세요: ")
+        end_ym = input("컴파일을 원하시는 기간의 종료 년월을 yyyymm 형식으로 입력해주세요: ")
+        
+        start_ym = datetime.strptime(start_ym, '%Y%m')
+        end_ym = datetime.strptime(end_ym, '%Y%m')
+        periods = [x.strftime('%Y%m') for x in rrule.rrule(freq=rrule.MONTHLY, dtstart=start_ym, until=end_ym)]
+
+        for period in periods:
+            print(period, '\n')
+        confirm = input(f"선택하신 항목이 맞습니까? (y/n): ")
+        
+        if confirm == 'n':
+            self.compile_option_4
+        
+        raw_files = set([str(x).strip() for x in os.listdir('D:/users/Desktop/Junhwi/국토연구원/HPU_Model/data/raw')]) 
+        input_target = set(periods)
 
         diff = sorted(list(set(input_target) - set(raw_files)), reverse=False)
         if len(diff) > 0:
@@ -235,18 +276,19 @@ class refine_data():
                 # bad sector 가 존재하는 데이터를 불러오기 위한 예외처리
                 temp = pd.read_table(f'{monthly_data_path}/{file}', engine="python", error_bad_lines=False, sep=',', encoding='utf-8-sig', header=0,warn_bad_lines=False)
             
-
+            temp = temp[['press','input_date_x','title_x','naver_url','url','article']]
+            
             # 언론사 이름 통일 
             press = file.split('_')[0].strip()
             temp['press'] = press 
 
             # 기사 입력정보 정제 
-            temp.drop(columns=['input_date_y'], inplace=True)
             temp.rename(columns={'input_date_x':'input_date'}, inplace=True)
             temp['input_date'] = pd.to_datetime(temp['input_date'], errors='ignore')
-
+    
+ 
             # 기사 제목 정제 
-            temp.drop(columns=['title_y'], inplace=True)
+            # temp.drop(columns=['title_y'], inplace=True)
             temp.rename(columns={'title_x':'title'}, inplace=True)
             temp['title'] = temp['title'].apply(lambda  x: re.sub(r'\n',' ', str(x))).apply(lambda  x: re.sub(r'\t',' ', str(x))).apply(lambda  x: re.sub(r'\s',' ', str(x)))
 
@@ -306,6 +348,7 @@ class refine_data():
         단어의 출현 여부를 확인해 T/F 값을 기입합니다. 
         '''
         def confirm_TF(word_list, min_freq):
+            word_list = ast.literal_eval(str(word_list))
             if len(word_list) == 0:
                 return 'F' 
             elif len(word_list) >= min_freq:
