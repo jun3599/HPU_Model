@@ -28,8 +28,9 @@ warnings.filterwarnings('ignore')
 
 
 class refine_data():
-    def __init__(self, HPU_dict_path, mecab_ko_dict_path, data_path):
+    def __init__(self, HPU_dict_path,mecab_ko_dict_path, data_path, sheet_name = 'HPU1'):
         self.HPU_dict_path = HPU_dict_path
+        self.sheet_name = sheet_name
         self.mecab_path = mecab_ko_dict_path 
         self.data_path = data_path 
         if not os.path.exists(f'{self.data_path}/compiled'):
@@ -326,7 +327,7 @@ class refine_data():
             return list(result) 
         
         try:
-            target_dict = pd.read_excel(self.HPU_dict_path)
+            target_dict = pd.read_excel(self.HPU_dict_path, sheet_name=self.sheet_name)
         except FileNotFoundError as nf:
             sys.exit(f'HPU사전이 지정된 경로에 존재하지 않습니다.  \nERROR CODE: {nf}')
 

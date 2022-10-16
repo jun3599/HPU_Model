@@ -10,12 +10,12 @@ warnings.filterwarnings('ignore')
 
 
 class compile_user_dict():
-    def __init__(self, HPU_dict_path, mecab_path):
+    def __init__(self, HPU_dict_path, mecab_path, sheet_name = 'HPU1'):
         self.HPU_dict_path = HPU_dict_path 
         self.mecab_path = mecab_path 
 
         try:
-            self.HPU_dict = pd.read_excel(self.HPU_dict_path)
+            self.HPU_dict = pd.read_excel(self.HPU_dict_path, sheet_name=sheet_name)
         except FileNotFoundError as e1:
             sys.exit("HPU_dict.xlsx파일이 지정된 경로에 존재하지 않습니다. 확인후 문의 부탁드립니다. ")
         self.manager()

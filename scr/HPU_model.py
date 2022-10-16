@@ -5,10 +5,11 @@ import os
 import sys 
 
 class HPU_model():
-    def __init__(self, data_path, HPU_dict_path, mecab_path):
+    def __init__(self, data_path, HPU_dict_path, mecab_path, sheet_name = 'HPU1'):
         self.data_path = data_path 
         self.HPU_dict_path = HPU_dict_path 
-        
+        self.sheet_name = sheet_name 
+
         self.mecab_path = mecab_path 
         self.mecab_kodict_path = f'{self.mecab_path}/mecab-ko-dic'
 
@@ -42,12 +43,12 @@ class HPU_model():
             self.mode_selector()
  
         if mode == '1': 
-            compile_user_dict(self.HPU_dict_path, self.mecab_path)
+            compile_user_dict(self.HPU_dict_path, self.mecab_path, sheet_name=self.sheet_name)
             print('HPU사전의 최신화가 완료되었습니다.')
             return None 
 
         elif mode == '2':
-            refine_data(self.HPU_dict_path, self.mecab_kodict_path, self.data_path)
+            refine_data(self.HPU_dict_path, self.mecab_kodict_path, self.data_path, sheet_name=self.sheet_name)
             print("뉴스 데이터의 컴파일이 완료되었습니다.")
             confirm = input("컴파일된 데이터를 기반으로 지표 산출을 진행하시겠습니까? (y/n): ")
             if confirm == 'y':
@@ -68,12 +69,12 @@ class HPU_model():
 
         elif mode == '4':
             print("사용자 지정 단어사전을 컴파일합니다.")
-            compile_user_dict(self.HPU_dict_path, self.mecab_path)
+            compile_user_dict(self.HPU_dict_path, self.mecab_path, sheet_name=self.sheet_name)
             print('HPU사전의 최신화가 완료되었습니다.')
             self.clear()
 
             print('뉴스 데이터 컴파일을 진행합니다. 이 작업은 완료되기까지 긴 시간이 소요됩니다. ')
-            refine_data(self.HPU_dict_path, self.mecab_kodict_path, self.data_path)
+            refine_data(self.HPU_dict_path, self.mecab_kodict_path, self.data_path, sheet_name=self.sheet_name)
             print("뉴스 데이터의 컴파일이 완료되었습니다.")
             self.claer()
 
