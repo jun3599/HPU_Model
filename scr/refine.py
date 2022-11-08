@@ -343,7 +343,7 @@ class refine_data():
 
         return df 
 
-    def write_word_group_TF(self, df, min_freq = 1):
+    def write_word_group_TF(self, df, freq = 1):
         '''
         find_group_of_word 함수를 통해 생성된 열들을 기반으로 
         단어의 출현 여부를 확인해 T/F 값을 기입합니다. 
@@ -354,9 +354,8 @@ class refine_data():
                 return 'F' 
             elif len(word_list) >= min_freq:
                 return 'T'
-
             else:
-                return 'T'
+                return 'F'
 
         df['H_TF'] = df['H_word'].apply(lambda x: confirm_TF(x, 2))
         df['P_TF'] = df['P_word'].apply(lambda x: confirm_TF(x,1))

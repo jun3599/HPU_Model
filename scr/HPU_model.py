@@ -76,7 +76,7 @@ class HPU_model():
             print('뉴스 데이터 컴파일을 진행합니다. 이 작업은 완료되기까지 긴 시간이 소요됩니다. ')
             refine_data(self.HPU_dict_path, self.mecab_kodict_path, self.data_path, sheet_name=self.sheet_name)
             print("뉴스 데이터의 컴파일이 완료되었습니다.")
-            self.claer()
+            self.clear()
 
             print("지표산출을 시작합니다.\n")
             calculate_index(self.data_path)
